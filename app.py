@@ -355,7 +355,7 @@ elif page == "🔗 Association Rules":
     transactions = []
     for _, row in df_rule.iterrows():
         transaction = []
-        for col in feature_cols
+        for col in feature_cols:
 elif page == "⚠️ Anomaly Detection":
     st.markdown('<div class="main-header">Anomaly Detection</div>', unsafe_allow_html=True)
     
