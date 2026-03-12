@@ -960,7 +960,7 @@ with col2:
 # ------------------------------
 # Page 4: Association Rules (Stage 5)
 # ------------------------------
- elif page == "🔗 Association Rules":
+elif page == "🔗 Association Rules":
     st.markdown('<div class="main-header">Association Rule Mining</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Discovering Hidden Relationships in Station Features</div>', unsafe_allow_html=True)
     
