@@ -963,7 +963,6 @@ with col2:
 elif page == "🔗 Association Rules":
     st.markdown('<div class="main-header">Association Rule Mining</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Discovering Hidden Relationships in Station Features</div>', unsafe_allow_html=True)
-    
     if df_raw is None:
         st.error("Please load the dataset first.")
     else:
