@@ -743,36 +743,43 @@ elif page == "🔗 Association Rules":
         with st.expander("📖 Methodology Explanation", expanded=False):
             st.markdown("""
             **Apriori Algorithm** is used to find frequent itemsets and association rules:
-            - **Support**, **Confidence**, **Lift**, **Leverage**, **Conviction**
+            - Support, Confidence, Lift, Leverage, Conviction
             """)
 
         # Work on a copy and fill NaNs
         df_rule = df_raw.copy()
-        for col in ['Cost (USD/kWh)', 'Usage Stats (avg users/day)', 
+        for col in ['Cost (USD/kWh)', 'Usage Stats (avg users/day)',
                     'Charging Capacity (kW)', 'Distance to City (km)', 'Reviews (Rating)']:
             if df_rule[col].isnull().any():
                 df_rule[col] = df_rule[col].fillna(df_rule[col].median())
 
-        # Get max values (add epsilon to avoid including max in last bin)
-        usage_max = df_rule['Usage Stats (avg users/day)'].max() + 0.001
-        cost_max  = df_rule['Cost (USD/kWh)'].max() + 0.001
-        capacity_max = df_rule['Charging Capacity (kW)'].max() + 0.001
-        dist_max = df_rule['Distance to City (km)'].max() + 0.001
+        # Get max values (without adding epsilon yet)
+        usage_max = df_rule['Usage Stats (avg users/day)'].max()
+        cost_max  = df_rule['Cost (USD/kWh)'].max()
+        capacity_max = df_rule['Charging Capacity (kW)'].max()
+        dist_max = df_rule['Distance to City (km)'].max()
+        rating_max = df_rule['Reviews (Rating)'].max()
 
-        # Define bins and labels
-        usage_bins = [0, 20, 50, 100, usage_max]
+        # Define fixed bin edges (up to the last fixed value) and then ensure the final edge is greater than the previous
+        usage_bins = [0, 20, 50, 100]
+        cost_bins   = [0, 0.2, 0.4, 0.6]
+        dist_bins   = [0, 5, 15, 30]
+        capacity_bins = [0, 50, 150, 350]
+        rating_bins = [0, 2, 3, 4]
+
+        # Add the last bin edge: max(previous_fixed_edge, data_max) + small epsilon
+        epsilon = 0.001
+        usage_bins.append(max(100, usage_max) + epsilon)
+        cost_bins.append(max(0.6, cost_max) + epsilon)
+        dist_bins.append(max(30, dist_max) + epsilon)
+        capacity_bins.append(max(350, capacity_max) + epsilon)
+        rating_bins.append(max(4, rating_max) + epsilon)
+
+        # Labels
         usage_labels = ['Low Usage', 'Medium Usage', 'High Usage', 'Very High Usage']
-
-        cost_bins = [0, 0.2, 0.4, 0.6, cost_max]
-        cost_labels = ['Cheap', 'Moderate', 'Expensive', 'Very Expensive']
-
-        dist_bins = [0, 5, 15, 30, dist_max]
-        dist_labels = ['Near City', 'Suburban', 'Far', 'Very Far']
-
-        capacity_bins = [0, 50, 150, 350, capacity_max]
+        cost_labels   = ['Cheap', 'Moderate', 'Expensive', 'Very Expensive']
+        dist_labels   = ['Near City', 'Suburban', 'Far', 'Very Far']
         capacity_labels = ['Slow', 'Medium', 'Fast', 'Ultra-Fast']
-
-        rating_bins = [0, 2, 3, 4, 5.001]
         rating_labels = ['Poor', 'Average', 'Good', 'Excellent']
 
         # Apply cut with error handling
@@ -788,10 +795,10 @@ elif page == "🔗 Association Rules":
             df_rule['Rating Category'] = pd.cut(df_rule['Reviews (Rating)'],
                                                 bins=rating_bins, labels=rating_labels, right=False, include_lowest=True)
         except Exception as e:
-            st.error(f"Error in binning: {e}. Please check for extreme values or missing data.")
+            st.error(f"Binning failed: {e}. Please check for extreme values or missing data.")
             st.stop()
 
-        # Simplify operator
+        # Simplify operator names
         top_operators = df_rule['Station Operator'].value_counts().nlargest(15).index
         df_rule['Operator Simple'] = df_rule['Station Operator'].apply(
             lambda x: x if x in top_operators else 'Other Operator'
@@ -833,8 +840,60 @@ elif page == "🔗 Association Rules":
                         rules = rules.sort_values('lift', ascending=False)
 
                         st.success(f"Found {len(rules)} association rules!")
-                        # ... (rest of display code remains the same)
-                        st.markdown(create_download_link(rules, "association_rules.csv"), unsafe_allow_html=True)
+
+                        # Display top rules
+                        st.markdown("### Top Association Rules")
+                        display_rules = rules[['antecedents', 'consequents',
+                                              'support', 'confidence', 'lift']].copy()
+                        display_rules['antecedents'] = display_rules['antecedents'].apply(
+                            lambda x: ', '.join(list(x))
+                        )
+                        display_rules['consequents'] = display_rules['consequents'].apply(
+                            lambda x: ', '.join(list(x))
+                        )
+                        display_rules = display_rules.round(3)
+                        st.dataframe(display_rules.head(20), use_container_width=True)
+
+                        # Visualizations
+                        st.markdown("### Rule Visualization")
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            fig = px.scatter(rules, x='support', y='confidence',
+                                           size='lift', color='lift',
+                                           hover_data=['antecedents', 'consequents'],
+                                           title='Support vs Confidence by Lift',
+                                           color_continuous_scale='viridis')
+                            st.plotly_chart(fig, use_container_width=True)
+                        with col2:
+                            top_rules = rules.nlargest(10, 'lift')
+                            top_rules['rule'] = top_rules['antecedents'].apply(
+                                lambda x: ', '.join(list(x))[:30] + '...'
+                            ) + ' → ' + top_rules['consequents'].apply(
+                                lambda x: ', '.join(list(x))[:20]
+                            )
+                            fig = px.bar(top_rules, x='lift', y='rule',
+                                       orientation='h',
+                                       title='Top 10 Rules by Lift',
+                                       color='confidence',
+                                       color_continuous_scale='viridis')
+                            st.plotly_chart(fig, use_container_width=True)
+
+                        # Heatmap of metrics
+                        if len(rules) > 0:
+                            sample_rules = rules.head(15)
+                            metrics_matrix = sample_rules[['support', 'confidence', 'lift',
+                                                          'leverage', 'conviction']].T
+                            fig = px.imshow(metrics_matrix,
+                                          x=[f'Rule {i+1}' for i in range(len(sample_rules))],
+                                          y=['Support', 'Confidence', 'Lift', 'Leverage', 'Conviction'],
+                                          title='Rule Metrics Comparison',
+                                          color_continuous_scale='Viridis',
+                                          aspect='auto')
+                            st.plotly_chart(fig, use_container_width=True)
+
+                        # Download rules
+                        st.markdown(create_download_link(rules, "association_rules.csv"),
+                                   unsafe_allow_html=True)
                     else:
                         st.warning("No frequent itemsets found. Try lower support value.")
                 except Exception as e:
