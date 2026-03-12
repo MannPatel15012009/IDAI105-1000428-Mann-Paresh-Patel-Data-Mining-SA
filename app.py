@@ -937,20 +937,25 @@ elif page == "🔍 Clustering Analysis":
                        f"${cluster_stats.loc[i, 'Avg Cost']}/kWh")
             st.markdown("---")
         
-        # Download results
-        st.markdown("### Export Results")
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            cluster_data = df_raw[['Station ID', 'Address', 'Charger Type', 
-                                 'Usage Stats (avg users/day)', 'Cost (USD/kWh)', 
-                                 'Cluster'] + cluster_labels if 'cluster_labels' in locals() else []
-            st.markdown(create_download_link(cluster_data, "clustered_stations.csv"), 
-                       unsafe_allow_html=True)
-        
-        with col2:
-            st.markdown(create_download_link(cluster_stats, "cluster_statistics.csv"), 
-                       unsafe_allow_html=True)
+       # Download results
+st.markdown("### Export Results")
+col1, col2 = st.columns(2)
+
+with col1:
+    # Prepare data for download
+    download_cols = ['Station ID', 'Address', 'Charger Type', 
+                    'Usage Stats (avg users/day)', 'Cost (USD/kWh)', 
+                    'Cluster']
+    
+    # Only add cluster labels if they exist
+    cluster_data = df_raw[download_cols].copy()
+    
+    st.markdown(create_download_link(cluster_data, "clustered_stations.csv"), 
+               unsafe_allow_html=True)
+
+with col2:
+    st.markdown(create_download_link(cluster_stats, "cluster_statistics.csv"), 
+               unsafe_allow_html=True)
 
 # ------------------------------
 # Page 4: Association Rules (Stage 5)
