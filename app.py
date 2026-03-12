@@ -730,7 +730,6 @@ elif page == "🔍 Clustering Analysis":
             st.markdown(create_download_link(cluster_data, "clustered_stations.csv"), unsafe_allow_html=True)
         with col2:
             st.markdown(create_download_link(cluster_stats, "cluster_statistics.csv"), unsafe_allow_html=True)
-
 # ------------------------------
 # Page 4: Association Rules (Stage 5)
 elif page == "🔗 Association Rules":
@@ -759,41 +758,59 @@ elif page == "🔗 Association Rules":
             4. Extract meaningful association rules
             """)
 
+        # Make a working copy
         df_rule = df_raw.copy()
+
+        # --- Handle missing values in continuous columns (fill with median) ---
+        for col in ['Cost (USD/kWh)', 'Usage Stats (avg users/day)', 
+                    'Charging Capacity (kW)', 'Distance to City (km)', 'Reviews (Rating)']:
+            if df_rule[col].isnull().any():
+                df_rule[col] = df_rule[col].fillna(df_rule[col].median())
+
+        # Get max values for bin edges (add small epsilon to avoid including max in last bin)
         usage_max = df_rule['Usage Stats (avg users/day)'].max()
-        cost_max = df_rule['Cost (USD/kWh)'].max()
+        cost_max  = df_rule['Cost (USD/kWh)'].max()
         capacity_max = df_rule['Charging Capacity (kW)'].max()
         dist_max = df_rule['Distance to City (km)'].max()
 
-        # Categorization
-        usage_bins = [0, 20, 50, 100, usage_max + 1]
+        # --- Create categorical variables using pd.cut ---
+        # Usage categories
+        usage_bins = [0, 20, 50, 100, usage_max + 0.001]  # add epsilon to last bin
         usage_labels = ['Low Usage', 'Medium Usage', 'High Usage', 'Very High Usage']
         df_rule['Usage Category'] = pd.cut(df_rule['Usage Stats (avg users/day)'],
-                                           bins=usage_bins, labels=usage_labels, right=False)
+                                           bins=usage_bins, labels=usage_labels, right=False, include_lowest=True)
 
-        cost_bins = [0, 0.2, 0.4, 0.6, cost_max + 0.1]
+        # Cost categories
+        cost_bins = [0, 0.2, 0.4, 0.6, cost_max + 0.001]
         cost_labels = ['Cheap', 'Moderate', 'Expensive', 'Very Expensive']
         df_rule['Cost Category'] = pd.cut(df_rule['Cost (USD/kWh)'],
-                                          bins=cost_bins, labels=cost_labels, right=False)
+                                          bins=cost_bins, labels=cost_labels, right=False, include_lowest=True)
 
-        dist_bins = [0, 5, 15, 30, dist_max + 1]
+        # Distance categories
+        dist_bins = [0, 5, 15, 30, dist_max + 0.001]
         dist_labels = ['Near City', 'Suburban', 'Far', 'Very Far']
         df_rule['Distance Category'] = pd.cut(df_rule['Distance to City (km)'],
-                                              bins=dist_bins, labels=dist_labels, right=False)
+                                              bins=dist_bins, labels=dist_labels, right=False, include_lowest=True)
 
-        capacity_bins = [0, 50, 150, 350, capacity_max + 1]
+        # Capacity categories
+        capacity_bins = [0, 50, 150, 350, capacity_max + 0.001]
         capacity_labels = ['Slow', 'Medium', 'Fast', 'Ultra-Fast']
         df_rule['Capacity Category'] = pd.cut(df_rule['Charging Capacity (kW)'],
-                                              bins=capacity_bins, labels=capacity_labels, right=False)
+                                              bins=capacity_bins, labels=capacity_labels, right=False, include_lowest=True)
 
+        # Rating categories
+        rating_bins = [0, 2, 3, 4, 5.001]  # include up to 5
+        rating_labels = ['Poor', 'Average', 'Good', 'Excellent']
         df_rule['Rating Category'] = pd.cut(df_rule['Reviews (Rating)'],
-                                            bins=[0, 2, 3, 4, 5],
-                                            labels=['Poor', 'Average', 'Good', 'Excellent'])
+                                            bins=rating_bins, labels=rating_labels, right=False, include_lowest=True)
 
+        # --- Prepare transactions ---
+        # List of features to include in rules
         feature_cols = ['Charger Type', 'Station Operator', 'Renewable Energy Source',
                        'Usage Category', 'Cost Category', 'Distance Category',
                        'Capacity Category', 'Rating Category']
 
+        # Simplify operator: keep top 15, others become 'Other Operator'
         top_operators = df_rule['Station Operator'].value_counts().nlargest(15).index
         df_rule['Operator Simple'] = df_rule['Station Operator'].apply(
             lambda x: x if x in top_operators else 'Other Operator'
@@ -802,15 +819,17 @@ elif page == "🔗 Association Rules":
                                'Usage Category', 'Cost Category', 'Distance Category',
                                'Capacity Category', 'Rating Category']
 
+        # Build transactions list (skip rows with any missing category – should be none now)
         transactions = []
         for _, row in df_rule.iterrows():
             transaction = []
             for col in feature_cols_updated:
-                if pd.notna(row[col]):
+                if pd.notna(row[col]):      # safety check, should always be true after fillna
                     transaction.append(str(row[col]))
             if transaction:
                 transactions.append(transaction)
 
+        # --- Parameters for Apriori ---
         st.markdown("### Association Rule Parameters")
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -823,6 +842,7 @@ elif page == "🔗 Association Rules":
             min_lift = st.slider("Minimum Lift", 1.0, 5.0, 1.2, 0.1,
                                 help="How much more likely B is when A occurs")
 
+        # --- Generate rules ---
         if st.button("Generate Association Rules", type="primary"):
             with st.spinner("Generating association rules..."):
                 try:
@@ -840,6 +860,7 @@ elif page == "🔗 Association Rules":
 
                         st.success(f"Found {len(rules)} association rules!")
 
+                        # Display top rules
                         st.markdown("### Top Association Rules")
                         display_rules = rules[['antecedents', 'consequents',
                                               'support', 'confidence', 'lift']].copy()
@@ -852,6 +873,7 @@ elif page == "🔗 Association Rules":
                         display_rules = display_rules.round(3)
                         st.dataframe(display_rules.head(20), use_container_width=True)
 
+                        # Visualizations
                         st.markdown("### Rule Visualization")
                         col1, col2 = st.columns(2)
                         with col1:
@@ -875,6 +897,7 @@ elif page == "🔗 Association Rules":
                                        color_continuous_scale='viridis')
                             st.plotly_chart(fig, use_container_width=True)
 
+                        # Heatmap of metrics
                         if len(rules) > 0:
                             sample_rules = rules.head(15)
                             metrics_matrix = sample_rules[['support', 'confidence', 'lift',
@@ -887,12 +910,13 @@ elif page == "🔗 Association Rules":
                                           aspect='auto')
                             st.plotly_chart(fig, use_container_width=True)
 
-                        st.markdown(create_download_link(rules, "association_rules.csv"), unsafe_allow_html=True)
+                        # Download rules
+                        st.markdown(create_download_link(rules, "association_rules.csv"),
+                                   unsafe_allow_html=True)
                     else:
                         st.warning("No frequent itemsets found. Try lower support value.")
                 except Exception as e:
                     st.error(f"Error generating rules: {str(e)}")
-
 # ------------------------------
 # Page 5: Anomaly Detection (Stage 6)
 elif page == "⚠️ Anomaly Detection":
