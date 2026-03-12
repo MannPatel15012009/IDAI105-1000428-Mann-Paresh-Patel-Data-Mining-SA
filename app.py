@@ -23,7 +23,6 @@ import os
 
 # ------------------------------
 # Page Configuration
-# ------------------------------
 st.set_page_config(
     page_title="SmartCharging Analytics",
     page_icon="⚡",
@@ -33,7 +32,6 @@ st.set_page_config(
 
 # ------------------------------
 # Custom CSS for Professional Look
-#-------------------------------
 st.markdown("""
 <style>
     /* Main Header Style */
@@ -186,7 +184,6 @@ st.markdown("""
 
 # ------------------------------
 # Data Loading with Caching
-# ------------------------------
 @st.cache_data
 def load_data():
     """Load and cache the EV charging stations dataset"""
@@ -201,7 +198,7 @@ def load_data():
 def preprocess_data(df):
     """Comprehensive data preprocessing with error handling"""
     if df is None:
-        return None, None, None, None
+        return None, None, None, None, None
     
     data = df.copy()
     
@@ -300,14 +297,12 @@ def preprocess_data(df):
 
 # ------------------------------
 # Load Data
-# ------------------------------
 df_raw = load_data()
 if df_raw is not None:
     df_scaled, df_original, scaler, le_charger, le_operator = preprocess_data(df_raw)
 
 # ------------------------------
 # Sidebar Navigation
-# ------------------------------
 with st.sidebar:
     st.image("https://img.icons8.com/fluency/96/lightning-bolt.png", width=100)
     st.markdown("# ⚡ SmartCharging")
@@ -357,7 +352,6 @@ with st.sidebar:
 
 # ------------------------------
 # Helper Functions
-# ------------------------------
 def revert_scale(value, col):
     """Revert scaled values back to original scale"""
     if scaler is not None and hasattr(scaler, 'mean_'):
@@ -374,7 +368,6 @@ def create_download_link(df, filename="data.csv"):
 
 # ------------------------------
 # Page 1: Project Overview
-# ------------------------------
 if page == "🏠 Project Overview":
     st.markdown('<div class="main-header">⚡ SmartCharging Analytics</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Uncovering EV Charging Behavior Patterns with Advanced Data Mining</div>', unsafe_allow_html=True)
@@ -384,39 +377,39 @@ if page == "🏠 Project Overview":
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.markdown("""
+            st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-value">{:,}</div>
+                <div class="metric-value">{len(df_raw):,}</div>
                 <div class="metric-label">Total Stations</div>
             </div>
-            """.format(len(df_raw)), unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
         
         with col2:
             avg_users = df_raw['Usage Stats (avg users/day)'].mean()
-            st.markdown("""
+            st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-value">{:.0f}</div>
+                <div class="metric-value">{avg_users:.0f}</div>
                 <div class="metric-label">Avg Daily Users</div>
             </div>
-            """.format(avg_users), unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
         
         with col3:
             avg_cost = df_raw['Cost (USD/kWh)'].mean()
-            st.markdown("""
+            st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-value">${:.2f}</div>
+                <div class="metric-value">${avg_cost:.2f}</div>
                 <div class="metric-label">Avg Cost/kWh</div>
             </div>
-            """.format(avg_cost), unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
         
         with col4:
             renewable_pct = (df_raw['Renewable Energy Source'] == 'Yes').mean() * 100
-            st.markdown("""
+            st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-value">{:.1f}%</div>
+                <div class="metric-value">{renewable_pct:.1f}%</div>
                 <div class="metric-label">Renewable Energy</div>
             </div>
-            """.format(renewable_pct), unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
     
     st.markdown("---")
     
@@ -556,7 +549,6 @@ SmartCharging-Analytics/
 
 # ------------------------------
 # Page 2: Exploratory Data Analysis (Stage 3)
-# ------------------------------
 elif page == "📊 Exploratory Data Analysis":
     st.markdown('<div class="main-header">Exploratory Data Analysis</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Understanding EV Charging Patterns Through Visualization</div>', unsafe_allow_html=True)
@@ -762,7 +754,6 @@ elif page == "📊 Exploratory Data Analysis":
 
 # ------------------------------
 # Page 3: Clustering Analysis (Stage 4)
-# ------------------------------
 elif page == "🔍 Clustering Analysis":
     st.markdown('<div class="main-header">Clustering Analysis</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Segmenting EV Charging Stations by Usage Patterns</div>', unsafe_allow_html=True)
@@ -844,9 +835,8 @@ elif page == "🔍 Clustering Analysis":
         centers_original = pd.DataFrame(kmeans.cluster_centers_, columns=cluster_features)
         
         # Revert scaling for interpretation
-        for col in cluster_features:
-            idx = list(X.columns).index(col)
-            centers_original[col] = centers_original[col] * scaler.scale_[idx] + scaler.mean_[idx]
+        for i, col in enumerate(cluster_features):
+            centers_original[col] = centers_original[col] * scaler.scale_[i] + scaler.mean_[i]
         
         centers_original = centers_original.round(2)
         centers_original.index = [f'Cluster {i}' for i in range(k)]
@@ -929,40 +919,43 @@ elif page == "🔍 Clustering Analysis":
             else:
                 label = "⚡ Standard Usage - Mixed Profile"
             cluster_labels.append(label)
-        
-        for i, label in enumerate(cluster_labels):
             st.markdown(f"**Cluster {i}:** {label}")
             st.markdown(f"- **Profile:** {cluster_stats.loc[i, 'Count']} stations, " + 
                        f"avg {cluster_stats.loc[i, 'Avg Users']} users/day, " +
                        f"${cluster_stats.loc[i, 'Avg Cost']}/kWh")
             st.markdown("---")
         
-       # Download results
-st.markdown("### Export Results")
-col1, col2 = st.columns(2)
-
-with col1:
-    # Prepare data for download
-    download_cols = ['Station ID', 'Address', 'Charger Type', 
-                    'Usage Stats (avg users/day)', 'Cost (USD/kWh)', 
-                    'Cluster']
-    
-    # Only add cluster labels if they exist
-    cluster_data = df_raw[download_cols].copy()
-    
-    st.markdown(create_download_link(cluster_data, "clustered_stations.csv"), 
-               unsafe_allow_html=True)
-
-with col2:
-    st.markdown(create_download_link(cluster_stats, "cluster_statistics.csv"), 
-               unsafe_allow_html=True)
+        # Download results
+        st.markdown("### Export Results")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Prepare base columns for download
+            download_cols = ['Station ID', 'Address', 'Charger Type', 
+                            'Usage Stats (avg users/day)', 'Cost (USD/kWh)', 
+                            'Cluster']
+            
+            # Create a copy of the data with only the columns we need
+            cluster_data = df_raw[download_cols].copy()
+            
+            # Add cluster labels if they exist as a separate column
+            if 'cluster_labels' in locals() and cluster_labels:
+                label_map = {i: cluster_labels[i] for i in range(len(cluster_labels))}
+                cluster_data['Cluster_Label'] = cluster_data['Cluster'].map(label_map)
+            
+            st.markdown(create_download_link(cluster_data, "clustered_stations.csv"), 
+                       unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown(create_download_link(cluster_stats, "cluster_statistics.csv"), 
+                       unsafe_allow_html=True)
 
 # ------------------------------
 # Page 4: Association Rules (Stage 5)
-#-------------------------------
 elif page == "🔗 Association Rules":
     st.markdown('<div class="main-header">Association Rule Mining</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Discovering Hidden Relationships in Station Features</div>', unsafe_allow_html=True)
+    
     if df_raw is None:
         st.error("Please load the dataset first.")
     else:
@@ -1171,7 +1164,6 @@ elif page == "🔗 Association Rules":
 
 # ------------------------------
 # Page 5: Anomaly Detection (Stage 6)
-# ------------------------------
 elif page == "⚠️ Anomaly Detection":
     st.markdown('<div class="main-header">Anomaly Detection</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Identifying Unusual Patterns and Outliers</div>', unsafe_allow_html=True)
@@ -1423,7 +1415,6 @@ elif page == "⚠️ Anomaly Detection":
 
 # ------------------------------
 # Page 6: Interactive Map (Stage 7 Integration)
-# ------------------------------
 elif page == "🗺️ Interactive Map":
     st.markdown('<div class="main-header">Interactive Station Map</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Geographic Visualization of Charging Stations</div>', unsafe_allow_html=True)
@@ -1593,7 +1584,6 @@ elif page == "🗺️ Interactive Map":
 
 # ------------------------------
 # Page 7: Insights & Recommendations (Stage 7)
-# ------------------------------
 elif page == "📈 Insights & Recommendations":
     st.markdown('<div class="main-header">Insights & Recommendations</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Data-Driven Decisions for EV Infrastructure</div>', unsafe_allow_html=True)
