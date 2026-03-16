@@ -239,7 +239,7 @@ def preprocess_data(df):
 # Load Data
 df_raw = load_data()
 if df_raw is not None:
-    df_scaled, df_original, scaler, le_charger, le_operator = preprocess_data(df_raw)
+   df_scaled, df_original, scaler, le_charger, le_operator, prep_log = preprocess_data(df_raw)
 # Later, in the Overview page or a dedicated "Data Prep" expander, show the log:
 with st.expander("📋 Preprocessing Steps Performed", expanded=False):
     for line in prep_log:
