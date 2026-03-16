@@ -22,8 +22,6 @@ SmartCharging Analytics is a comprehensive data mining application that analyzes
 - **Folium**: Interactive maps
 - **SciPy**: Statistical analysis
 
-## Live Web App Link
-[Live Streamlit App] (https://idai105-1000428-mann-paresh-patel-data-mining-sa-bzrwyjoywuxch.streamlit.app/)
 ## 📊 Key Features
 
 ### 1. Data Preprocessing (Stage 2)
@@ -32,6 +30,8 @@ SmartCharging Analytics is a comprehensive data mining application that analyzes
 - Categorical encoding (LabelEncoder)
 - Feature scaling (StandardScaler)
 
+![Preprocessing Summary](images/preprocessing_summary.png)   <!-- replace with actual screenshot -->
+
 ### 2. Exploratory Data Analysis (Stage 3)
 - Interactive visualizations with Plotly
 - Usage statistics and distributions
@@ -39,11 +39,16 @@ SmartCharging Analytics is a comprehensive data mining application that analyzes
 - Geographic patterns
 - Correlation analysis
 
+![EDA Dashboard](images/eda_dashboard.png)   <!-- replace -->
+
 ### 3. Clustering Analysis (Stage 4)
 - K-Means clustering with elbow method
 - PCA for 2D visualization
 - Cluster profiling and labeling
 - Silhouette score optimization
+
+![Elbow Method](images/elbow_method.png)  
+![Cluster PCA](images/cluster_pca.png)
 
 ### 4. Association Rule Mining (Stage 5)
 - Apriori algorithm implementation
@@ -51,11 +56,15 @@ SmartCharging Analytics is a comprehensive data mining application that analyzes
 - Rule visualization and filtering
 - Transaction encoding
 
+![Association Rules](images/association_rules.png)
+
 ### 5. Anomaly Detection (Stage 6)
 - Statistical methods (IQR, Z-Score)
 - Local Outlier Factor (LOF)
 - Multi-feature anomaly detection
 - Comprehensive anomaly reporting
+
+![Anomaly Detection](images/anomaly_map.png)
 
 ### 6. Interactive Maps (Stage 7)
 - Folium integration
@@ -63,11 +72,15 @@ SmartCharging Analytics is a comprehensive data mining application that analyzes
 - Popup information boxes
 - Filtering capabilities
 
+![Interactive Map](images/interactive_map.png)
+
 ### 7. Insights & Recommendations (Stage 7)
 - Data-driven strategic recommendations
 - Executive summary
 - Report generation
 - Actionable insights
+
+![Insights Dashboard](images/insights.png)
 
 ## 🚀 Installation & Setup
 
@@ -92,20 +105,30 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 ### Step 3: Install Dependencies
-```bash
-pip install -r requirements.txt
-```
+bash
+`pip install -r requirements.txt`
 ### Step 4: Run Application
-```bash
-streamlit run app.py
-```
+bash
+`streamlit run app.py`
 ## 📁 Repository Structure
-```text
-SmartCharging-Analytics/
+text
+```SmartCharging-Analytics/
 ├── app.py                      # Main Streamlit application
 ├── requirements.txt             # Python dependencies
 ├── detailed_ev_charging_stations.csv  # Dataset
 ├── README.md                    # Documentation
+├── .gitignore                   # Git ignore file
+├── images/                      # Visualizations (screenshots)
+│   ├── preprocessing_summary.png
+│   ├── eda_dashboard.png
+│   ├── elbow_method.png
+│   ├── cluster_pca.png
+│   ├── association_rules.png
+│   ├── anomaly_map.png
+│   ├── interactive_map.png
+│   └── insights.png
+└── reports/                     # Generated reports
+    └── analysis_report.txt
 ```
 ## 📊 Dataset Description
 The dataset contains 5,000+ EV charging stations with the following features:
@@ -189,7 +212,7 @@ Executive summary
 
 Report generation
 
-Stage 8: Deployment
+### Stage 8: Deployment
 Streamlit Cloud deployment
 
 Interactive dashboard
@@ -200,11 +223,14 @@ User-friendly interface
 
 ## 📈 Key Insights
 ### Usage Patterns
-Urban Concentration: 60% of high-usage stations within 10km of city centers
+#### Urban Concentration: 
+60% of high-usage stations within 10km of city centers
 
-Peak Times: Evening hours (5-8 PM) show 40% higher usage
+#### Peak Times: 
+Evening hours (5-8 PM) show 40% higher usage
 
-Charger Popularity: DC Fast Chargers account for 45% of total usage
+#### Charger Popularity: 
+DC Fast Chargers account for 45% of total usage
 
 ### Economic Factors
 Price Sensitivity: 45% higher usage at stations below $0.30/kWh
@@ -220,7 +246,7 @@ Optimal k=4 based on silhouette score (0.52)
 
 Cluster Characteristics: Clear separation by usage and pricing
 
-## Anomaly Detection
+### Anomaly Detection
 127 Anomalies Identified: 2.5% of stations
 
 Common Characteristics: High price with low usage, or vice versa
@@ -228,7 +254,7 @@ Common Characteristics: High price with low usage, or vice versa
 Action Required: 47 stations flagged for immediate investigation
 
 ## 🚀 Deployment
-### Streamlit Cloud Deployment
+Streamlit Cloud Deployment
 Push code to GitHub repository
 
 Visit share.streamlit.io
@@ -239,13 +265,19 @@ Select repository and branch
 
 Deploy application
 
+SmartCharging Analytics Live Demo
+
 ## 📝 License
 This project is created for educational purposes as part of the Data Mining course.
 
-## 👥 Contributors
+##👥 Contributors
 Student Name: Mann Paresh Patel
+
 WACP Candidate Number: 1000428
+
 Course: Data Mining
+
+Year: 2026
 
 ## 📚 References
 Scikit-learn Documentation: https://scikit-learn.org
@@ -259,3 +291,20 @@ MLxtend Documentation: http://rasbt.github.io/mlxtend
 "Data Mining: Concepts and Techniques" - Han, Kamber, Pei
 
 "Introduction to Data Mining" - Tan, Steinbach, Kumar
+
+
+## Third-Party Trademarks:
+
+Python® is a registered trademark of the Python Software Foundation
+
+Streamlit® is a registered trademark of Streamlit Inc.
+
+Plotly® is a registered trademark of Plotly Technologies Inc.
+
+scikit-learn® is a registered trademark of INRIA
+
+GitHub® is a registered trademark of GitHub, Inc.
+
+All other trademarks are property of their respective owners
+
+Usage Notice: This educational project uses third-party trademarks for identification purposes only. Such use does not imply any endorsement or affiliation.
