@@ -167,32 +167,23 @@ def preprocess_data(df):
         return None, None, None, None, None
 
     data = df.copy()
+    preprocessing_log = []   # collect actions for display
 
     # 1. Handle Missing Values
-    st.write("### 📊 Data Preprocessing Steps")
-    with st.expander("View Preprocessing Details", expanded=False):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write("**Before Processing:**")
-            missing_before = data.isnull().sum()
-            st.write(missing_before[missing_before > 0])
+    missing_before = data.isnull().sum()
+    if missing_before.sum() > 0:
+        preprocessing_log.append("**Missing values handled:**")
+        for col in missing_before[missing_before > 0].index:
+            preprocessing_log.append(f"- {col}: filled with median/mode")
+    else:
+        preprocessing_log.append("✅ No missing values found – no imputation needed.")
 
-        # Reviews (Rating) - fill with median
-        data['Reviews (Rating)'] = data['Reviews (Rating)'].fillna(data['Reviews (Rating)'].median())
-        # Renewable Energy Source - fill with mode
-        data['Renewable Energy Source'] = data['Renewable Energy Source'].fillna('No')
-        # Connector Types - fill with 'Unknown'
-        data['Connector Types'] = data['Connector Types'].fillna('Unknown')
-        # Maintenance Frequency - fill with mode
-        data['Maintenance Frequency'] = data['Maintenance Frequency'].fillna('Annually')
-
-        with col2:
-            st.write("**After Processing:**")
-            missing_after = data.isnull().sum()
-            st.write(missing_after[missing_after > 0])
+    data['Reviews (Rating)'] = data['Reviews (Rating)'].fillna(data['Reviews (Rating)'].median())
+    data['Renewable Energy Source'] = data['Renewable Energy Source'].fillna('No')
+    data['Connector Types'] = data['Connector Types'].fillna('Unknown')
+    data['Maintenance Frequency'] = data['Maintenance Frequency'].fillna('Annually')
 
     # 2. Feature Engineering
-    # Convert Availability to numeric hours
     def availability_to_hours(avail):
         if pd.isna(avail):
             return 0
@@ -207,15 +198,16 @@ def preprocess_data(df):
             return 0
 
     data['Availability Hours'] = data['Availability'].apply(availability_to_hours)
-
-    # Create cost categories
+    preprocessing_log.append("**Feature engineering:** created 'Availability Hours' from 'Availability'.")
     data['Cost Category'] = pd.cut(data['Cost (USD/kWh)'],
                                     bins=[0, 0.2, 0.4, 0.6, 1.0],
                                     labels=['Very Low', 'Low', 'Medium', 'High'])
+    preprocessing_log.append("**Feature engineering:** created 'Cost Category' (Very Low, Low, Medium, High).")
 
     # 3. Encode Categorical Features
     le_charger = LabelEncoder()
     data['Charger Type Enc'] = le_charger.fit_transform(data['Charger Type'])
+    preprocessing_log.append("**Encoding:** 'Charger Type' label-encoded.")
 
     top_operators = data['Station Operator'].value_counts().nlargest(10).index
     data['Operator Simplified'] = data['Station Operator'].apply(
@@ -223,11 +215,14 @@ def preprocess_data(df):
     )
     le_operator = LabelEncoder()
     data['Operator Enc'] = le_operator.fit_transform(data['Operator Simplified'])
+    preprocessing_log.append("**Encoding:** 'Station Operator' (top 10 kept, others → 'Other').")
 
     data['Renewable Enc'] = data['Renewable Energy Source'].map({'Yes': 1, 'No': 0})
+    preprocessing_log.append("**Encoding:** 'Renewable Energy Source' mapped to 1/0.")
 
     freq_map = {'Annually': 0, 'Quarterly': 1, 'Monthly': 2}
     data['Maint Freq Enc'] = data['Maintenance Frequency'].map(freq_map)
+    preprocessing_log.append("**Encoding:** 'Maintenance Frequency' ordinal encoded.")
 
     # 4. Feature Scaling
     continuous_cols = ['Cost (USD/kWh)', 'Usage Stats (avg users/day)',
@@ -236,16 +231,19 @@ def preprocess_data(df):
     scaler = StandardScaler()
     data_scaled = data.copy()
     data_scaled[continuous_cols] = scaler.fit_transform(data[continuous_cols])
+    preprocessing_log.append("**Scaling:** continuous features standardized (mean=0, std=1).")
 
     st.success("✅ Data preprocessing completed successfully!")
-    return data_scaled, data, scaler, le_charger, le_operator
-
+    return data_scaled, data, scaler, le_charger, le_operator, preprocessing_log
 # ------------------------------
 # Load Data
 df_raw = load_data()
 if df_raw is not None:
     df_scaled, df_original, scaler, le_charger, le_operator = preprocess_data(df_raw)
-
+# Later, in the Overview page or a dedicated "Data Prep" expander, show the log:
+with st.expander("📋 Preprocessing Steps Performed", expanded=False):
+    for line in prep_log:
+        st.markdown(line)
 # ------------------------------
 # Sidebar Navigation
 with st.sidebar:
@@ -299,87 +297,100 @@ def create_download_link(df, filename="data.csv"):
     b64 = base64.b64encode(csv.encode()).decode()
     href = f'<a href="data:file/csv;base64,{b64}" download="{filename}">📥 Download CSV</a>'
     return href
-
 # ------------------------------
-# Page 1: Project Overview (Stage 1)
+# Page 1: Project Overview (Stage 1) – UPDATED
+#-------------------------------
 if page == "🏠 Project Overview":
     st.markdown('<div class="main-header">⚡ SmartCharging Analytics</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Uncovering EV Charging Behavior Patterns with Advanced Data Mining</div>', unsafe_allow_html=True)
 
+    # Key Metrics Row (unchanged)
     if df_raw is not None:
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-value">{len(df_raw):,}</div>
-                <div class="metric-label">Total Stations</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"""<div class="metric-card"><div class="metric-value">{len(df_raw):,}</div><div class="metric-label">Total Stations</div></div>""", unsafe_allow_html=True)
         with col2:
             avg_users = df_raw['Usage Stats (avg users/day)'].mean()
-            st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-value">{avg_users:.0f}</div>
-                <div class="metric-label">Avg Daily Users</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"""<div class="metric-card"><div class="metric-value">{avg_users:.0f}</div><div class="metric-label">Avg Daily Users</div></div>""", unsafe_allow_html=True)
         with col3:
             avg_cost = df_raw['Cost (USD/kWh)'].mean()
-            st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-value">${avg_cost:.2f}</div>
-                <div class="metric-label">Avg Cost/kWh</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"""<div class="metric-card"><div class="metric-value">${avg_cost:.2f}</div><div class="metric-label">Avg Cost/kWh</div></div>""", unsafe_allow_html=True)
         with col4:
             renewable_pct = (df_raw['Renewable Energy Source'] == 'Yes').mean() * 100
-            st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-value">{renewable_pct:.1f}%</div>
-                <div class="metric-label">Renewable Energy</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"""<div class="metric-card"><div class="metric-value">{renewable_pct:.1f}%</div><div class="metric-label">Renewable Energy</div></div>""", unsafe_allow_html=True)
 
     st.markdown("---")
-    st.markdown("## 📋 Stage 1: Project Scope Definition")
-    with st.container():
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("""
-            <div class="card">
-                <h3>🎯 Objectives</h3>
-                <ul>
-                    <li>Analyze EV charging patterns across 5,000+ global stations</li>
-                    <li>Identify distinct user behavior clusters</li>
-                    <li>Discover associations between station features and usage</li>
-                    <li>Detect anomalies in charging patterns</li>
-                    <li>Provide actionable insights for infrastructure planning</li>
-                </ul>
-            </div>
-            """, unsafe_allow_html=True)
-        with col2:
-            st.markdown("""
-            <div class="card">
-                <h3>🔍 Key Questions</h3>
-                <ul>
-                    <li>What factors influence station popularity?</li>
-                    <li>How does pricing affect usage patterns?</li>
-                    <li>Where should new stations be located?</li>
-                    <li>What combinations of features drive high usage?</li>
-                    <li>Are there stations with anomalous behavior?</li>
-                </ul>
-            </div>
-            """, unsafe_allow_html=True)
 
+    # ---------- STAGE 1: PROJECT SCOPE DEFINITION (Enhanced) ----------
+    st.markdown("## 📋 Stage 1: Project Scope Definition")
+    st.markdown("""
+    <div class="card">
+        <h3>🎯 Project Objectives</h3>
+        <ul>
+            <li><b>Primary Goal:</b> Analyze EV charging station data to uncover usage patterns, optimize infrastructure, and improve customer experience.</li>
+            <li><b>Secondary Goals:</b>
+                <ul>
+                    <li>Identify distinct user segments via clustering (K-Means).</li>
+                    <li>Discover hidden associations between station features (Apriori).</li>
+                    <li>Detect anomalous stations (IQR, Z‑score, LOF).</li>
+                    <li>Provide actionable insights for operators and city planners.</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("""
+        <div class="card">
+            <h4>🗺️ Project Scope</h4>
+            <ul>
+                <li><b>Dataset:</b> 5,000+ EV charging stations worldwide (17 features).</li>
+                <li><b>Geographic coverage:</b> Global (cities like San Francisco, Berlin, Tokyo, etc.).</li>
+                <li><b>Timeframe:</b> Stations installed between 2010 and 2023.</li>
+                <li><b>Analysis boundaries:</b> Usage patterns, pricing, charger types, operator performance, renewable energy adoption.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown("""
+        <div class="card">
+            <h4>📝 Tasks Performed</h4>
+            <ol>
+                <li><b>Data Cleaning & Preprocessing</b> – handle missing values, encode categories, scale features.</li>
+                <li><b>Exploratory Data Analysis (EDA)</b> – histograms, boxplots, correlation, geographic maps.</li>
+                <li><b>Clustering</b> – K‑Means with elbow method, PCA visualisation, cluster labelling.</li>
+                <li><b>Association Rule Mining</b> – Apriori algorithm to find feature relationships.</li>
+                <li><b>Anomaly Detection</b> – statistical (IQR, Z‑score) and machine learning (LOF).</li>
+                <li><b>Interactive Mapping</b> – Folium map coloured by cluster / usage.</li>
+                <li><b>Insights & Recommendations</b> – data‑driven strategic advice.</li>
+                <li><b>Deployment</b> – interactive Streamlit dashboard (this app).</li>
+            </ol>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Methodology timeline (visual)
+    st.markdown("### 🚀 Project Workflow")
+    st.markdown("""
+    <div style="display: flex; justify-content: space-between; background: #1e1e1e; padding: 15px; border-radius: 10px; margin: 20px 0;">
+        <span style="color:#00ff88;">1. Scope</span> → 
+        <span style="color:#00ff88;">2. Prep</span> → 
+        <span style="color:#00ff88;">3. EDA</span> → 
+        <span style="color:#00ff88;">4. Clustering</span> → 
+        <span style="color:#00ff88;">5. Assoc. Rules</span> → 
+        <span style="color:#00ff88;">6. Anomaly</span> → 
+        <span style="color:#00ff88;">7. Insights</span> → 
+        <span style="color:#00ff88;">8. Deploy</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Dataset Overview (unchanged, but keep it)
     st.markdown("## 📊 Dataset Overview")
     if df_raw is not None:
         col1, col2 = st.columns([2, 1])
         with col1:
-            st.markdown("""
-            <div class="card">
-                <h4>Features Description</h4>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown("""<div class="card"><h4>Features Description</h4></div>""", unsafe_allow_html=True)
             feature_desc = pd.DataFrame({
                 'Feature': df_raw.columns[:10],
                 'Type': [df_raw[col].dtype for col in df_raw.columns[:10]],
@@ -387,53 +398,32 @@ if page == "🏠 Project Overview":
             })
             st.dataframe(feature_desc, use_container_width=True)
         with col2:
-            st.markdown("""
-            <div class="card">
-                <h4>Data Quality</h4>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown("""<div class="card"><h4>Data Quality</h4></div>""", unsafe_allow_html=True)
             missing_data = df_raw.isnull().sum()
             missing_pct = (missing_data / len(df_raw)) * 100
             quality_df = pd.DataFrame({
                 'Feature': missing_data.index,
                 'Missing %': missing_pct.values
             }).sort_values('Missing %', ascending=False).head(5)
-            fig = px.bar(quality_df, x='Feature', y='Missing %',
-                        title='Top 5 Features with Missing Data',
-                        color='Missing %', color_continuous_scale='reds')
-            st.plotly_chart(fig, use_container_width=True)
+            if quality_df['Missing %'].sum() == 0:
+                st.info("✨ The dataset is complete – no missing values.")
+            else:
+                fig = px.bar(quality_df, x='Feature', y='Missing %',
+                           title='Top 5 Features with Missing Data',
+                           color='Missing %', color_continuous_scale='reds')
+                st.plotly_chart(fig, use_container_width=True)
 
+    # Methodology Cards (unchanged but keep)
     st.markdown("## 🛠️ Methodology")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.markdown("""
-        <div class="card">
-            <h4 style="color: #00ff88;">1️⃣ Data Prep</h4>
-            <p>Cleaning, encoding, scaling, and feature engineering of raw station data</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("""<div class="card"><h4 style="color: #00ff88;">1️⃣ Data Prep</h4><p>Cleaning, encoding, scaling, and feature engineering of raw station data</p></div>""", unsafe_allow_html=True)
     with col2:
-        st.markdown("""
-        <div class="card">
-            <h4 style="color: #00ff88;">2️⃣ EDA</h4>
-            <p>Interactive visualizations to understand distributions and relationships</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("""<div class="card"><h4 style="color: #00ff88;">2️⃣ EDA</h4><p>Interactive visualizations to understand distributions and relationships</p></div>""", unsafe_allow_html=True)
     with col3:
-        st.markdown("""
-        <div class="card">
-            <h4 style="color: #00ff88;">3️⃣ Advanced Analytics</h4>
-            <p>K-Means clustering, association rules, and anomaly detection</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("""<div class="card"><h4 style="color: #00ff88;">3️⃣ Advanced Analytics</h4><p>K-Means clustering, association rules, and anomaly detection</p></div>""", unsafe_allow_html=True)
     with col4:
-        st.markdown("""
-        <div class="card">
-            <h4 style="color: #00ff88;">4️⃣ Deployment</h4>
-            <p>Interactive Streamlit dashboard with real-time insights</p>
-        </div>
-        """, unsafe_allow_html=True)
-
+        st.markdown("""<div class="card"><h4 style="color: #00ff88;">4️⃣ Deployment</h4><p>Interactive Streamlit dashboard with real-time insights</p></div>""", unsafe_allow_html=True)
 # ------------------------------
 # Page 2: Exploratory Data Analysis (Stage 3)
 elif page == "📊 Exploratory Data Analysis":
