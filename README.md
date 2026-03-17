@@ -24,7 +24,29 @@ SmartCharging Analytics is a comprehensive data mining application that analyzes
 
 ## 📊 Key Features
 
-### 1. Data Preprocessing (Stage 2)
+### Stage 1: Project Scope Definition
+- **Objectives:**
+  - Analyze EV charging patterns across 5,000+ global stations.
+  - Identify distinct user behavior clusters via K‑Means.
+  - Discover associations between station features (charger type, cost, renewable energy) using Apriori.
+  - Detect anomalies in charging patterns (IQR, Z‑score, LOF).
+  - Provide actionable insights for infrastructure planning and operator strategy.
+- **Scope:**
+  - Dataset: 5,000+ stations with 17 features (location, charger type, cost, usage, operator, capacity, connectors, year, renewable energy, ratings, parking, maintenance).
+  - Geographic coverage: global, with major cities represented.
+  - Timeframe: stations installed 2010–2023.
+  - Analysis includes preprocessing, EDA, clustering, association rules, anomaly detection, and interactive mapping.
+- **Tasks:**
+  1. Data cleaning & preprocessing
+  2. Exploratory Data Analysis (EDA)
+  3. Clustering (K‑Means, elbow method, PCA)
+  4. Association rule mining (Apriori)
+  5. Anomaly detection (statistical & LOF)
+  6. Interactive mapping (Folium)
+  7. Insight synthesis & recommendations
+  8. Streamlit deployment
+
+### Stage 2: Data Preprocessing 
 - Missing value handling with median/mode imputation
 - Feature engineering (availability hours, cost categories)
 - Categorical encoding (LabelEncoder)
@@ -32,7 +54,7 @@ SmartCharging Analytics is a comprehensive data mining application that analyzes
 
 ![Preprocessing Summary](images/preprocessing_summary.png)   <!-- replace with actual screenshot -->
 
-### 2. Exploratory Data Analysis (Stage 3)
+### Stage 3: Exploratory Data Analysis 
 - Interactive visualizations with Plotly
 - Usage statistics and distributions
 - Cost analysis and comparisons
@@ -41,7 +63,7 @@ SmartCharging Analytics is a comprehensive data mining application that analyzes
 
 ![EDA Dashboard](images/eda_dashboard.png)   <!-- replace -->
 
-### 3. Clustering Analysis (Stage 4)
+### Stage 4: Clustering Analysis 
 - K-Means clustering with elbow method
 - PCA for 2D visualization
 - Cluster profiling and labeling
@@ -50,7 +72,7 @@ SmartCharging Analytics is a comprehensive data mining application that analyzes
 ![Elbow Method](images/elbow_method.png)  
 ![Cluster PCA](images/cluster_pca.png)
 
-### 4. Association Rule Mining (Stage 5)
+### Stage 5: Association Rule Mining 
 - Apriori algorithm implementation
 - Support, confidence, lift metrics
 - Rule visualization and filtering
@@ -58,7 +80,7 @@ SmartCharging Analytics is a comprehensive data mining application that analyzes
 
 ![Association Rules](images/association_rules.png)
 
-### 5. Anomaly Detection (Stage 6)
+### Stage 6: Anomaly Detection 
 - Statistical methods (IQR, Z-Score)
 - Local Outlier Factor (LOF)
 - Multi-feature anomaly detection
@@ -66,7 +88,7 @@ SmartCharging Analytics is a comprehensive data mining application that analyzes
 
 ![Anomaly Detection](images/anomaly_map.png)
 
-### 6. Interactive Maps (Stage 7)
+### Stage 7.1: Interactive Maps 
 - Folium integration
 - Color-coded stations by cluster
 - Popup information boxes
@@ -74,7 +96,7 @@ SmartCharging Analytics is a comprehensive data mining application that analyzes
 
 ![Interactive Map](images/interactive_map.png)
 
-### 7. Insights & Recommendations (Stage 7)
+### Stage 7.2: Insights & Recommendations
 - Data-driven strategic recommendations
 - Executive summary
 - Report generation
