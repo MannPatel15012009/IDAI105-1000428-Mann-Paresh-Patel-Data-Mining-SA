@@ -811,17 +811,18 @@ elif page == "🔗 Association Rules":
                         'Capacity Category', 'Rating Category']
         st.dataframe(df_rule[['Usage Category', 'Cost Category', 'Distance Category', 
                       'Capacity Category', 'Rating Category']].head(10))
+             
         transactions = []
         for _, row in df_rule.iterrows():
             transaction = [str(row[col]) for col in feature_cols if pd.notna(row[col])]
             if transaction:
                 transactions.append(transaction)
-            st.write(f"Number of transactions: {len(transactions)}")
+
         st.write(f"**Total transactions built:** {len(transactions)}")
         if transactions:
             st.write("**Sample transaction (first 3):**", transactions[:3])
         else:
-            st.warning("No transactions were created – check binning!")    
+            st.warning("No transactions were created – check binning!")     
 
         # Parameters
         col1, col2, col3 = st.columns(3)
@@ -847,7 +848,7 @@ elif page == "🔗 Association Rules":
                                                use_colnames=True, max_len=4)
                     st.write(f"**Number of frequent itemsets:** {len(frequent_itemsets)}")
                     if len(frequent_itemsets) > 0:
-                       st.write("**Sample frequent itemsets (first 5):**")
+                       st.write("**Sample frequent itemsets:**")
                        st.dataframe(frequent_itemsets.head())
                     else:
                        st.warning("No frequent itemsets found. Try lowering support further.")
