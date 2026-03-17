@@ -911,7 +911,7 @@ elif page == "🔗 Association Rules":
 # ------------------------------
 # Page 5: Anomaly Detection (Stage 6)
 elif page == "⚠️ Anomaly Detection":
-    st.markdown('<div class="main-header">Anomaly Detection</div>',
+    st.markdown('<div class="main-header">Anomaly Detection</div>', unsafe_allow_html=True)
                         # Download rules unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Identifying Unusual Patterns and Outliers</div>', unsafe_allow_html=True)
 
