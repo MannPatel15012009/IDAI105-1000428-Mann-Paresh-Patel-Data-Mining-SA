@@ -849,7 +849,7 @@ elif page == "🔗 Association Rules":
                     if len(frequent_itemsets) > 0:
                        st.write("**Sample frequent itemsets (first 5):**")
                        st.dataframe(frequent_itemsets.head())
-                   else:
+                    else:
                        st.warning("No frequent itemsets found. Try lowering support further.")
 
                     if len(frequent_itemsets) > 0:
