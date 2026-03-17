@@ -759,23 +759,14 @@ elif page == "🔗 Association Rules":
             if df_rule[col].isnull().any():
                 df_rule[col] = df_rule[col].fillna(df_rule[col].median())
 
-        # Get max values (without adding epsilon yet)
-        usage_max = df_rule['Usage Stats (avg users/day)'].max()
-        cost_max  = df_rule['Cost (USD/kWh)'].max()
-        capacity_max = df_rule['Charging Capacity (kW)'].max()
-        dist_max = df_rule['Distance to City (km)'].max()
-        rating_max = df_rule['Reviews (Rating)'].max()
+        # Use np.inf for the last bin edge to guarantee all values are included
+        import numpy as np
+        usage_bins = [0, 20, 50, 100, np.inf]
+        cost_bins   = [0, 0.2, 0.4, 0.6, np.inf]
+        dist_bins   = [0, 5, 15, 30, np.inf]
+        capacity_bins = [0, 50, 150, 350, np.inf]
+        rating_bins = [0, 2, 3, 4, np.inf]
 
-        # Define fixed bin edges and ensure we have the right number of bins
-        # We need 5 edges for 4 categories: [edge1, edge2, edge3, edge4, edge5]
-
-        usage_bins = [0, 20, 50, 100, max(100, usage_max) + 0.001]
-        cost_bins   = [0, 0.2, 0.4, 0.6, max(0.6, cost_max) + 0.001]
-        dist_bins   = [0, 5, 15, 30, max(30, dist_max) + 0.001]
-        capacity_bins = [0, 50, 150, 350, max(350, capacity_max) + 0.001]
-        rating_bins = [0, 2, 3, 4, max(4, rating_max) + 0.001]
-
-        # Labels (4 categories each)
         usage_labels = ['Low Usage', 'Medium Usage', 'High Usage', 'Very High Usage']
         cost_labels   = ['Cheap', 'Moderate', 'Expensive', 'Very Expensive']
         dist_labels   = ['Near City', 'Suburban', 'Far', 'Very Far']
@@ -797,10 +788,9 @@ elif page == "🔗 Association Rules":
         except Exception as e:
             st.error(f"Binning failed: {e}. Please check for extreme values or missing data.")
             st.stop()
-        st.dataframe(df_rule[['Usage Category', 'Cost Category', 'Distance Category', 
-                      'Capacity Category', 'Rating Category']].head(10))
-        # Simplify operator names
-        top_operators = df_rule['Station Operator'].value_counts().nlargest(15).index
+
+        # Simplify operator names (keep top 5 to reduce sparsity)
+        top_operators = df_rule['Station Operator'].value_counts().nlargest(5).index
         df_rule['Operator Simple'] = df_rule['Station Operator'].apply(
             lambda x: x if x in top_operators else 'Other Operator'
         )
@@ -809,20 +799,18 @@ elif page == "🔗 Association Rules":
         feature_cols = ['Charger Type', 'Operator Simple', 'Renewable Energy Source',
                         'Usage Category', 'Cost Category', 'Distance Category',
                         'Capacity Category', 'Rating Category']
-        st.dataframe(df_rule[['Usage Category', 'Cost Category', 'Distance Category', 
-                      'Capacity Category', 'Rating Category']].head(10))
-             
         transactions = []
         for _, row in df_rule.iterrows():
             transaction = [str(row[col]) for col in feature_cols if pd.notna(row[col])]
             if transaction:
                 transactions.append(transaction)
 
+        # Debug: print transaction count once (remove after verification)
         st.write(f"**Total transactions built:** {len(transactions)}")
         if transactions:
             st.write("**Sample transaction (first 3):**", transactions[:3])
         else:
-            st.warning("No transactions were created – check binning!")     
+            st.warning("No transactions were created – check binning!")
 
         # Parameters
         col1, col2, col3 = st.columns(3)
@@ -846,30 +834,31 @@ elif page == "🔗 Association Rules":
 
                     frequent_itemsets = apriori(df_trans, min_support=min_support,
                                                use_colnames=True, max_len=4)
+
+                    # Debug: show frequent itemsets (optional, can be removed later)
                     st.write(f"**Number of frequent itemsets:** {len(frequent_itemsets)}")
                     if len(frequent_itemsets) > 0:
-                       st.write("**Sample frequent itemsets:**")
-                       st.dataframe(frequent_itemsets.head())
+                        st.write("**Sample frequent itemsets (first 5):**")
+                        st.dataframe(frequent_itemsets.head())
                     else:
-                       st.warning("No frequent itemsets found. Try lowering support further.")
+                        st.warning("No frequent itemsets found. Try lowering support further.")
 
                     if len(frequent_itemsets) > 0:
                         rules = association_rules(frequent_itemsets, metric="lift", min_threshold=1.0)
                         rules = rules[(rules['confidence'] >= min_confidence) & (rules['lift'] >= min_lift)]
                         rules = rules.sort_values('lift', ascending=False)
 
+                        # Convert frozensets to strings for display and hover
+                        rules['antecedents_str'] = rules['antecedents'].apply(lambda x: ', '.join(list(x)))
+                        rules['consequents_str'] = rules['consequents'].apply(lambda x: ', '.join(list(x)))
+
                         st.success(f"Found {len(rules)} association rules!")
 
                         # Display top rules
                         st.markdown("### Top Association Rules")
-                        display_rules = rules[['antecedents', 'consequents',
+                        display_rules = rules[['antecedents_str', 'consequents_str',
                                               'support', 'confidence', 'lift']].copy()
-                        display_rules['antecedents'] = display_rules['antecedents'].apply(
-                            lambda x: ', '.join(list(x))
-                        )
-                        display_rules['consequents'] = display_rules['consequents'].apply(
-                            lambda x: ', '.join(list(x))
-                        )
+                        display_rules.columns = ['antecedents', 'consequents', 'support', 'confidence', 'lift']
                         display_rules = display_rules.round(3)
                         st.dataframe(display_rules.head(20), use_container_width=True)
 
@@ -881,16 +870,16 @@ elif page == "🔗 Association Rules":
                         with col1:
                             fig = px.scatter(rules, x='support', y='confidence',
                                            size='lift', color='lift',
-                                           hover_data=['antecedents', 'consequents'],
+                                           hover_data=['antecedents_str', 'consequents_str'],
                                            title='Support vs Confidence by Lift',
                                            color_continuous_scale='viridis')
                             st.plotly_chart(fig, use_container_width=True)
                         with col2:
                             top_rules = rules.nlargest(10, 'lift')
-                            top_rules['rule'] = top_rules['antecedents'].apply(
-                                lambda x: ', '.join(list(x))[:30] + '...'
-                            ) + ' → ' + top_rules['consequents'].apply(
-                                lambda x: ', '.join(list(x))[:20]
+                            top_rules['rule'] = top_rules['antecedents_str'].apply(
+                                lambda x: x[:30] + '...' if len(x) > 30 else x
+                            ) + ' → ' + top_rules['consequents_str'].apply(
+                                lambda x: x[:20] + '...' if len(x) > 20 else x
                             )
                             fig = px.bar(top_rules, x='lift', y='rule',
                                        orientation='h',
@@ -919,11 +908,11 @@ elif page == "🔗 Association Rules":
                         st.warning("No frequent itemsets found. Try lower support value.")
                 except Exception as e:
                     st.error(f"Error generating rules: {str(e)}")
-
 # ------------------------------
 # Page 5: Anomaly Detection (Stage 6)
 elif page == "⚠️ Anomaly Detection":
-    st.markdown('<div class="main-header">Anomaly Detection</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-header">Anomaly Detection</div>',
+                        # Download rules unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Identifying Unusual Patterns and Outliers</div>', unsafe_allow_html=True)
 
     if df_raw is None:
