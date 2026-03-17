@@ -766,22 +766,16 @@ elif page == "🔗 Association Rules":
         dist_max = df_rule['Distance to City (km)'].max()
         rating_max = df_rule['Reviews (Rating)'].max()
 
-        # Define fixed bin edges (up to the last fixed value) and then ensure the final edge is greater than the previous
-        usage_bins = [0, 20, 50, 100]
-        cost_bins   = [0, 0.2, 0.4, 0.6]
-        dist_bins   = [0, 5, 15, 30]
-        capacity_bins = [0, 50, 150, 350]
-        rating_bins = [0, 2, 3, 4]
+        # Define fixed bin edges and ensure we have the right number of bins
+        # We need 5 edges for 4 categories: [edge1, edge2, edge3, edge4, edge5]
 
-        # Add the last bin edge: max(previous_fixed_edge, data_max) + small epsilon
-        epsilon = 0.001
-        usage_bins.append(max(100, usage_max) + epsilon)
-        cost_bins.append(max(0.6, cost_max) + epsilon)
-        dist_bins.append(max(30, dist_max) + epsilon)
-        capacity_bins.append(max(350, capacity_max) + epsilon)
-        rating_bins.append(max(4, rating_max) + epsilon)
+        usage_bins = [0, 20, 50, 100, max(100, usage_max) + 0.001]
+        cost_bins   = [0, 0.2, 0.4, 0.6, max(0.6, cost_max) + 0.001]
+        dist_bins   = [0, 5, 15, 30, max(30, dist_max) + 0.001]
+        capacity_bins = [0, 50, 150, 350, max(350, capacity_max) + 0.001]
+        rating_bins = [0, 2, 3, 4, max(4, rating_max) + 0.001]
 
-        # Labels
+        # Labels (4 categories each)
         usage_labels = ['Low Usage', 'Medium Usage', 'High Usage', 'Very High Usage']
         cost_labels   = ['Cheap', 'Moderate', 'Expensive', 'Very Expensive']
         dist_labels   = ['Near City', 'Suburban', 'Far', 'Very Far']
