@@ -1460,6 +1460,114 @@ elif page == "📈 Insights & Recommendations":
             b64 = base64.b64encode(report.encode()).decode()
             href = f'<a href="data:text/plain;base64,{b64}" download="smartcharging_report.txt">📥 Download Report</a>'
             st.markdown(href, unsafe_allow_html=True)
+            
+        st.markdown("## 📋 Structured Report: Key Questions Answered")
+        st.markdown("---")
+
+        # 1. Most popular charger types
+        st.markdown("### 🔌 1. Which charger types are most popular?")
+        col1, col2 = st.columns(2)
+        with col1:
+            charger_counts = df_raw['Charger Type'].value_counts().reset_index()
+            charger_counts.columns = ['Charger Type', 'Number of Stations']
+            fig = px.bar(charger_counts, x='Charger Type', y='Number of Stations',
+                         title='Charger Type Popularity (by station count)',
+                         color='Number of Stations', color_continuous_scale='viridis')
+            st.plotly_chart(fig, use_container_width=True)
+        with col2:
+            # Also show by average usage (demand)
+            charger_usage = df_raw.groupby('Charger Type')['Usage Stats (avg users/day)'].mean().sort_values(ascending=False).reset_index()
+            fig2 = px.bar(charger_usage, x='Charger Type', y='Usage Stats (avg users/day)',
+                          title='Average Daily Users by Charger Type',
+                          color='Usage Stats (avg users/day)', color_continuous_scale='plasma')
+            st.plotly_chart(fig2, use_container_width=True)
+        st.markdown(f"**Insight:** {charger_counts.iloc[0]['Charger Type']} is the most common ({charger_counts.iloc[0]['Number of Stations']} stations). "
+                    f"However, {charger_usage.iloc[0]['Charger Type']} has the highest average daily usage ({charger_usage.iloc[0]['Usage Stats (avg users/day)']:.1f} users).")
+
+        # 2. Operators with best service (ratings vs. usage)
+        st.markdown("### 🏢 2. Which operators provide the best service (ratings vs. usage)?")
+        operator_stats = df_raw.groupby('Station Operator').agg({
+            'Reviews (Rating)': 'mean',
+            'Usage Stats (avg users/day)': 'mean',
+            'Station ID': 'count'
+        }).rename(columns={'Station ID': 'Station Count'}).round(2)
+        operator_stats = operator_stats[operator_stats['Station Count'] >= 5].sort_values('Reviews (Rating)', ascending=False)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            fig = px.bar(operator_stats.reset_index().head(10), x='Station Operator', y='Reviews (Rating)',
+                         title='Top 10 Operators by Average Rating',
+                         color='Reviews (Rating)', color_continuous_scale='greens')
+            st.plotly_chart(fig, use_container_width=True)
+        with col2:
+            fig = px.scatter(operator_stats.reset_index(), x='Reviews (Rating)', y='Usage Stats (avg users/day)',
+                             size='Station Count', color='Station Operator',
+                             title='Rating vs Usage by Operator',
+                             hover_data=['Station Operator'])
+            st.plotly_chart(fig, use_container_width=True)
+        best_rating_op = operator_stats.index[0]
+        best_usage_op = operator_stats.sort_values('Usage Stats (avg users/day)', ascending=False).index[0]
+        st.markdown(f"**Insight:** **{best_rating_op}** has the highest average rating ({operator_stats.loc[best_rating_op, 'Reviews (Rating)']}★). "
+                    f"**{best_usage_op}** has the highest average daily usage ({operator_stats.loc[best_usage_op, 'Usage Stats (avg users/day)']:.0f} users).")
+
+        # 3. Peak demand stations: city vs rural
+        st.markdown("### 🏙️ 3. Where are peak demand stations located (city vs. rural)?")
+        # Define city: distance <=5 km, rural: >20 km
+        city_stations = df_raw[df_raw['Distance to City (km)'] <= 5]
+        rural_stations = df_raw[df_raw['Distance to City (km)'] > 20]
+        suburban_stations = df_raw[(df_raw['Distance to City (km)'] > 5) & (df_raw['Distance to City (km)'] <= 20)]
+        
+        loc_data = pd.DataFrame({
+            'Location': ['City (≤5 km)', 'Suburban (5-20 km)', 'Rural (>20 km)'],
+            'Number of Stations': [len(city_stations), len(suburban_stations), len(rural_stations)],
+            'Avg Daily Users': [city_stations['Usage Stats (avg users/day)'].mean(),
+                                suburban_stations['Usage Stats (avg users/day)'].mean(),
+                                rural_stations['Usage Stats (avg users/day)'].mean()]
+        })
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            fig = px.bar(loc_data, x='Location', y='Number of Stations',
+                         title='Station Distribution by Location',
+                         color='Number of Stations', color_continuous_scale='blues')
+            st.plotly_chart(fig, use_container_width=True)
+        with col2:
+            fig = px.bar(loc_data, x='Location', y='Avg Daily Users',
+                         title='Average Daily Users by Location',
+                         color='Avg Daily Users', color_continuous_scale='reds')
+            st.plotly_chart(fig, use_container_width=True)
+        st.markdown(f"**Insight:** City stations have the highest average daily users ({loc_data.loc[0, 'Avg Daily Users']:.1f}), despite being fewer in number ({loc_data.loc[0, 'Number of Stations']}). "
+                    f"Rural stations have the lowest average usage ({loc_data.loc[2, 'Avg Daily Users']:.1f}).")
+
+        # 4. Anomalies or rare behaviors
+        st.markdown("### ⚠️ 4. What anomalies or rare behaviors were found?")
+        # Simple IQR on usage to flag outliers
+        usage = df_raw['Usage Stats (avg users/day)']
+        Q1 = usage.quantile(0.25)
+        Q3 = usage.quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+        anomalies = df_raw[(usage < lower_bound) | (usage > upper_bound)]
+        
+        st.write(f"**{len(anomalies)} stations ({len(anomalies)/len(df_raw)*100:.1f}%)** show anomalous usage patterns (outside 1.5×IQR).")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            fig = px.box(usage, title='Usage Distribution with Outlier Boundaries')
+            fig.add_hline(y=lower_bound, line_dash="dash", line_color="red", annotation_text="Lower bound")
+            fig.add_hline(y=upper_bound, line_dash="dash", line_color="red", annotation_text="Upper bound")
+            st.plotly_chart(fig, use_container_width=True)
+        with col2:
+            # Show a few anomalies
+            st.markdown("**Sample anomaly stations:**")
+            st.dataframe(anomalies[['Station ID', 'Address', 'Charger Type', 'Usage Stats (avg users/day)',
+                                    'Cost (USD/kWh)', 'Reviews (Rating)']].head(10), use_container_width=True)
+        
+        # Also mention high-cost/low-usage anomalies if desired
+        high_cost_low_usage = df_raw[(df_raw['Cost (USD/kWh)'] > df_raw['Cost (USD/kWh)'].quantile(0.75)) &
+                                      (df_raw['Usage Stats (avg users/day)'] < df_raw['Usage Stats (avg users/day)'].quantile(0.25))]
+        st.markdown(f"Additionally, **{len(high_cost_low_usage)} stations** are both expensive (>75th percentile) and low‑usage (<25th percentile) – potential candidates for review.")
 
 # ------------------------------
 # Footer
