@@ -325,8 +325,8 @@ if page == "🏠 Project Overview":
 
     # Stage 1: Project Scope Definition
     st.markdown("## 📋 Stage 1: Project Scope Definition")
-   st.markdown("""
-<div class="card">
+    st.markdown("""
+     <div class="card">
     <h3>🎯 Project Objectives</h3>
     <ul>
         <li><b>Primary Goal:</b> Analyze EV charging station data to uncover usage patterns, optimize infrastructure, and improve customer experience.</li>
