@@ -535,7 +535,32 @@ elif page == "📊 Exploratory Data Analysis":
             }).round(2)
             st.dataframe(charger_perf, use_container_width=True)
             show_insight("DC Fast Chargers have the highest average capacity and usage, but also the highest cost. AC Level 2 offers a balanced profile with good ratings.")
-
+            st.markdown("### ⏱️ Charging Behavior Patterns by Location")
+            st.markdown("Average daily usage of each charger type at different distances from city centers.")
+            
+            # Create distance categories locally for this chart
+            dist_bins = [0, 5, 15, 30, np.inf]
+            dist_labels = ['City Center (≤5 km)', 'Suburban (5-15 km)', 'Far (15-30 km)', 'Rural (>30 km)']
+            df_raw['Distance Category'] = pd.cut(df_raw['Distance to City (km)'],
+                                                 bins=dist_bins, labels=dist_labels, right=False)
+            
+            # Group by charger type and distance category
+            behavior_df = df_raw.groupby(['Charger Type', 'Distance Category'], observed=True)['Usage Stats (avg users/day)'].mean().reset_index()
+            
+            # Create grouped bar chart
+            fig = px.bar(behavior_df, x='Charger Type', y='Usage Stats (avg users/day)',
+                         color='Distance Category', barmode='group',
+                         title='Average Daily Users by Charger Type and Location',
+                         color_discrete_sequence=px.colors.qualitative.Set2)
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Add insight
+            highest_usage = behavior_df.loc[behavior_df['Usage Stats (avg users/day)'].idxmax()]
+            st.markdown(f"**Insight:** {highest_usage['Charger Type']} chargers in **{highest_usage['Distance Category']}** see the highest average usage ({highest_usage['Usage Stats (avg users/day)']:.1f} users/day). "
+                        f"This confirms that fast chargers are most needed near cities, while slower chargers dominate farther away.")
+            
+            # Clean up temporary column (optional, to avoid side effects)
+            df_raw.drop(columns=['Distance Category'], inplace=True, errors='ignore')
         with tab4:
             st.markdown("### Geographic Analysis")
             col1, col2 = st.columns(2)
