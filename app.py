@@ -325,23 +325,22 @@ if page == "🏠 Project Overview":
 
     # Stage 1: Project Scope Definition
     st.markdown("## 📋 Stage 1: Project Scope Definition")
-    st.markdown("""
-    <div class="card">
-        <h3>🎯 Project Objectives</h3>
-        <ul>
-            <li><b>Primary Goal:</b> Analyze EV charging station data to uncover usage patterns, optimize infrastructure, and improve customer experience.</li>
-            <li><b>Secondary Goals:</b>
-                <ul>
-                    <li>Identify distinct user segments via clustering (K-Means).</li>
-                    <li>Discover hidden associations between station features (Apriori).</li>
-                    <li>Detect anomalous stations (IQR, Z‑score, LOF).</li>
-                    <li>Provide actionable insights for operators and city planners.</li>
-                </ul>
-            </li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
-
+   st.markdown("""
+<div class="card">
+    <h3>🎯 Project Objectives</h3>
+    <ul>
+        <li><b>Primary Goal:</b> Analyze EV charging station data to uncover usage patterns, optimize infrastructure, and improve customer experience.</li>
+        <li><b>Specific Objectives:</b>
+            <ul>
+                <li>🔍 Find charging behavior patterns (when, where, how much).</li>
+                <li>📊 Group stations/users into clusters (e.g., daily commuters, long-duration users).</li>
+                <li>🔗 Discover associations between usage and station type or location.</li>
+                <li>⚠️ Detect faulty readings or abnormal charging patterns.</li>
+            </ul>
+        </li>
+    </ul>
+</div>
+""", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("""
