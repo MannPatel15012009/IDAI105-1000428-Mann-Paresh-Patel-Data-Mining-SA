@@ -1,4 +1,4 @@
-<img width="1497" height="720" alt="Screenshot 2026-03-19 175438" src="https://github.com/user-attachments/assets/ec55be5f-14fd-4f1a-b429-1fce1c6aac58" /># ⚡ SmartCharging Analytics
+# ⚡ SmartCharging Analytics
 
 ## 📋 Project Overview
 
@@ -299,6 +299,7 @@ Deploy application
 <img width="1353" height="702" alt="Screenshot 2026-03-19 175752" src="https://github.com/user-attachments/assets/54a0a31f-7b1d-44c1-a299-31b89eb2ee87" />
 <img width="1427" height="816" alt="Screenshot 2026-03-19 175911" src="https://github.com/user-attachments/assets/d148eb38-4c4e-4c9d-b267-ba2533bd5608" />
 <img width="1262" height="628" alt="Screenshot 2026-03-19 175946" src="https://github.com/user-attachments/assets/7423ecf5-3e43-4888-888e-c6f8501c7da6" />
+<img width="1497" height="720" alt="Screenshot 2026-03-19 175438" src="https://github.com/user-attachments/assets/ec55be5f-14fd-4f1a-b429-1fce1c6aac58" />
 
 ## 📝 License
 This project is created for educational purposes as part of the Data Mining course.
