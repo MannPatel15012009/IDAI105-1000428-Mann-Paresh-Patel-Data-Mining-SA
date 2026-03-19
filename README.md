@@ -1,4 +1,4 @@
-# ⚡ SmartCharging Analytics
+<img width="1497" height="720" alt="Screenshot 2026-03-19 175438" src="https://github.com/user-attachments/assets/ec55be5f-14fd-4f1a-b429-1fce1c6aac58" /># ⚡ SmartCharging Analytics
 
 ## 📋 Project Overview
 
@@ -287,7 +287,18 @@ Select repository and branch
 
 Deploy application
 
-SmartCharging Analytics Live Demo
+## Visuals of the App
+<img width="1339" height="692" alt="Screenshot 2026-03-19 180002" src="https://github.com/user-attachments/assets/ce0666cc-625a-4d6e-91d9-6d8a2b94238d" />
+<img width="1302" height="724" alt="Screenshot 2026-03-19 180045" src="https://github.com/user-attachments/assets/cd1fce02-5e4b-4ac3-88f9-888cbdb5eb48" />
+<img width="1312" height="796" alt="Screenshot 2026-03-19 175137" src="https://github.com/user-attachments/assets/98abbdc1-61cd-42ee-9e34-0f97a5406e91" />
+<img width="1393" height="451" alt="Screenshot 2026-03-19 175215" src="https://github.com/user-attachments/assets/97d5649b-99c9-4741-a415-f3136bf7ccd6" />
+<img width="1354" height="740" alt="Screenshot 2026-03-19 175328" src="https://github.com/user-attachments/assets/18ddd9bd-f467-4d6c-a8ea-6af842cd3f84" />
+<img width="1321" height="764" alt="Screenshot 2026-03-19 175500" src="https://github.com/user-attachments/assets/ff6011b6-e16c-467e-bd1d-7e31e074c847" />
+<img width="1389" height="791" alt="Screenshot 2026-03-19 175547" src="https://github.com/user-attachments/assets/8091192f-065a-4394-917c-fa461a396985" />
+<img width="1426" height="716" alt="Screenshot 2026-03-19 175617" src="https://github.com/user-attachments/assets/d7ddbf3e-8f42-49fc-aff1-38519a8a7338" />
+<img width="1353" height="702" alt="Screenshot 2026-03-19 175752" src="https://github.com/user-attachments/assets/54a0a31f-7b1d-44c1-a299-31b89eb2ee87" />
+<img width="1427" height="816" alt="Screenshot 2026-03-19 175911" src="https://github.com/user-attachments/assets/d148eb38-4c4e-4c9d-b267-ba2533bd5608" />
+<img width="1262" height="628" alt="Screenshot 2026-03-19 175946" src="https://github.com/user-attachments/assets/7423ecf5-3e43-4888-888e-c6f8501c7da6" />
 
 ## 📝 License
 This project is created for educational purposes as part of the Data Mining course.
