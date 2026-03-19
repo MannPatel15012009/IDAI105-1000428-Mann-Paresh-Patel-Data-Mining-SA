@@ -292,7 +292,7 @@ SmartCharging Analytics Live Demo
 ## 📝 License
 This project is created for educational purposes as part of the Data Mining course.
 
-##👥 Contributors
+## Developer Details
 Student Name: Mann Paresh Patel
 
 WACP Candidate Number: 1000428
