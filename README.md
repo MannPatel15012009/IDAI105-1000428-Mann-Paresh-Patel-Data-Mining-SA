@@ -252,9 +252,13 @@ SmartCharging-Analytics/
 │   ├── interactive_map.png
 │   └── insights.png
 ```
+
 ## 👨‍💻 Developer Details
 
-Student Name: Mann Paresh Patel
-Candidate Number: 1000428
-Course: Data Mining
-Year: 2026
+**Student Name**: Mann Paresh Patel
+
+**Candidate Number**: 1000428
+
+**Course**: Data Mining
+
+**Year**: 2026
