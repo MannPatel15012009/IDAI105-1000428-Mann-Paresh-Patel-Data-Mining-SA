@@ -232,6 +232,7 @@ Introduction to Data Mining — Tan, Steinbach, Kumar
 <img width="1438" height="582" alt="Screenshot 2026-03-27 182119" src="https://github.com/user-attachments/assets/53dc067d-d1fb-4f51-ba0c-7ac4fe9373b0" />
 <img width="1182" height="751" alt="Screenshot 2026-03-27 182134" src="https://github.com/user-attachments/assets/226189e2-d7a9-4cf1-b493-9feb081fec6c" />
 <img width="1326" height="699" alt="Screenshot 2026-03-27 182222" src="https://github.com/user-attachments/assets/9e1edee6-11d4-4d86-81cd-cf08e994287a" />
+
 ### 📁 Repository Structure Guide
 ```text
 SmartCharging-Analytics/
