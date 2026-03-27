@@ -1,6 +1,6 @@
 # ⚡ SmartCharging Analytics
 
-## 📋 Project Overview
+## 📋 Project Title and Scope 
 
 SmartCharging Analytics is a comprehensive data mining application that analyzes EV charging station patterns using advanced analytics techniques. The application processes over 5,000 global charging stations to uncover insights about usage patterns, pricing strategies, and infrastructure optimization.
 
@@ -52,8 +52,6 @@ SmartCharging Analytics is a comprehensive data mining application that analyzes
 - Categorical encoding (LabelEncoder)
 - Feature scaling (StandardScaler)
 
-![Preprocessing Summary](images/preprocessing_summary.png)   <!-- replace with actual screenshot -->
-
 ### Stage 3: Exploratory Data Analysis 
 - Interactive visualizations with Plotly
 - Usage statistics and distributions
@@ -61,16 +59,11 @@ SmartCharging Analytics is a comprehensive data mining application that analyzes
 - Geographic patterns
 - Correlation analysis
 
-![EDA Dashboard](images/eda_dashboard.png)   <!-- replace -->
-
 ### Stage 4: Clustering Analysis 
 - K-Means clustering with elbow method
 - PCA for 2D visualization
 - Cluster profiling and labeling
 - Silhouette score optimization
-
-![Elbow Method](images/elbow_method.png)  
-![Cluster PCA](images/cluster_pca.png)
 
 ### Stage 5: Association Rule Mining 
 - Apriori algorithm implementation
@@ -78,15 +71,11 @@ SmartCharging Analytics is a comprehensive data mining application that analyzes
 - Rule visualization and filtering
 - Transaction encoding
 
-![Association Rules](images/association_rules.png)
-
 ### Stage 6: Anomaly Detection 
 - Statistical methods (IQR, Z-Score)
 - Local Outlier Factor (LOF)
 - Multi-feature anomaly detection
 - Comprehensive anomaly reporting
-
-![Anomaly Detection](images/anomaly_map.png)
 
 ### Stage 7.1: Interactive Maps 
 - Folium integration
@@ -94,15 +83,11 @@ SmartCharging Analytics is a comprehensive data mining application that analyzes
 - Popup information boxes
 - Filtering capabilities
 
-![Interactive Map](images/interactive_map.png)
-
 ### Stage 7.2: Insights & Recommendations
 - Data-driven strategic recommendations
 - Executive summary
 - Report generation
 - Actionable insights
-
-![Insights Dashboard](images/insights.png)
 
 ## 🚀 Installation & Setup
 
