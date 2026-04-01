@@ -137,6 +137,33 @@ High capacity but underutilized stations
 
 These stations may require pricing changes or relocation.
 
+## 🔗 Integration Details (Clustering + PCA)
+
+This project integrates **K-Means Clustering** with **Principal Component Analysis (PCA)** to perform clustering and visualize high-dimensional data.
+
+##3 Workflow Integration
+The data mining pipeline follows these steps:
+
+1. Data preprocessing and cleaning  
+2. Encoding categorical variables  
+3. Feature scaling using StandardScaler  
+4. K-Means clustering to group charging stations  
+5. PCA applied to reduce features to 2 dimensions  
+6. Visualization of clusters using PCA scatter plot  
+
+### Purpose of Integration
+- K-Means performs clustering in multi-dimensional feature space  
+- PCA reduces dimensionality for visualization  
+- PCA scatter plots help visually interpret cluster separation  
+- This integration improves interpretability of clustering results  
+
+### Pipeline Summary
+``` text
+Raw Data → Preprocessing → Encoding → Scaling → K-Means → PCA → Cluster Visualization
+```
+
+This integration allows clustering to be performed on full feature data while visualizing results in a two-dimensional space for easier interpretation.
+
 ## 🌐 Deployed Project on Streamlit, Overview and Functionality
 ### 🖥️ Streamlit Application Overview
 
